@@ -15,8 +15,6 @@ import com.oracle.truffle.js.runtime.builtins.BuiltinEnum;
 import com.oracle.truffle.js.runtime.builtins.JSArray;
 import com.oracle.truffle.js.runtime.builtins.JSArrayObject;
 import com.oracle.truffle.js.runtime.objects.Null;
-import com.oracle.truffle.js.runtime.objects.Undefined;
-
 
 import java.util.Arrays;
 
@@ -105,7 +103,7 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
         @Specialization(guards = "isTaintedNode.execute(a)")
         JSArrayObject getTaintTainted(AbstractTruffleString a,
                           @Cached TSTaintNodes.GetTaintNode getTaintNode,
-                          @Cached TSTaintNodes.IsTaintedNode isTaintedNode ) {
+                          @Cached TSTaintNodes.IsTaintedNode isTaintedNode) {
             final Object[] taint = mapNull(getTaintNode.execute(a));
 
             // TODO no clue which array implementation I should choose, there are sooooo many
@@ -121,7 +119,9 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
         private static Object[] mapNull(Object[] arr) {
             final Object[] mapped = Arrays.copyOf(arr, arr.length);
             for (int i = 0; i < mapped.length; i++) {
-                if (mapped[i] == null) { mapped[i] = Null.instance; }
+                if (mapped[i] == null) {
+                    mapped[i] = Null.instance;
+                }
             }
             return mapped;
         }
