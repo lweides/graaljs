@@ -176,6 +176,11 @@ public final class GraalJSParserHelper {
             protected Function<Number, TruffleString> getNumberToStringConverter() {
                 return JSRuntime::numberToString;
             }
+
+            @Override
+            protected boolean shouldTaintAllStrings() {
+                return context.getContextOptions().shouldTaintAllStrings();
+            }
         };
     }
 
@@ -194,6 +199,7 @@ public final class GraalJSParserHelper {
         builder.importAssertions(parserOptions.isImportAssertions());
         builder.privateFieldsIn(parserOptions.isPrivateFieldsIn());
         builder.topLevelAwait(parserOptions.isTopLevelAwait());
+        builder.taintAllStrings(parserOptions.shouldTaintAllStrings());
         if (parserOptions.isFunctionStatementError()) {
             builder.functionStatementBehavior(FunctionStatementBehavior.ERROR);
         } else {

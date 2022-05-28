@@ -568,7 +568,7 @@ public abstract class AbstractParser {
         } else if (value instanceof Number) {
             node = LiteralNode.newInstance(literalToken, finish, (Number) value, getNumberToStringConverter());
         } else if (value instanceof TruffleString) {
-            node = LiteralNode.newInstance(literalToken, (TruffleString) value);
+            node = LiteralNode.newInstance(literalToken, (TruffleString) value, shouldTaintAllStrings());
         } else if (value instanceof LexerToken) {
             validateLexerToken((LexerToken) value);
             node = LiteralNode.newInstance(literalToken, finish, (LexerToken) value);
@@ -586,6 +586,12 @@ public abstract class AbstractParser {
      */
     protected void validateLexerToken(final LexerToken lexerToken) {
     }
+
+    /**
+     * Flag to taint all {@link TruffleString}s upon creation during parsing.
+     * Should be controllable via the argument {@code --js.taint-all-strings}.
+     */
+    abstract protected boolean shouldTaintAllStrings();
 
     /**
      * Custom number-to-string converter used to convert numeric property names to strings.
