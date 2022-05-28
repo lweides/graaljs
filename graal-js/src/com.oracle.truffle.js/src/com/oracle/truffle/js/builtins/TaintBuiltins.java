@@ -8,6 +8,7 @@ import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.js.nodes.JSGuards;
 import com.oracle.truffle.js.nodes.function.JSBuiltin;
 import com.oracle.truffle.js.nodes.function.JSBuiltinNode;
+import com.oracle.truffle.js.runtime.Errors;
 import com.oracle.truffle.js.runtime.JSContext;
 import com.oracle.truffle.js.runtime.JSRealm;
 import com.oracle.truffle.js.runtime.Strings;
@@ -30,20 +31,14 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
     }
 
     public enum Taint implements BuiltinEnum<Taint> {
-        addTaint(0),
-        getTaint(0),
-        isTainted(0),
-        removeTaint(0);
-
-        private final int length;
-
-        Taint(int length) {
-            this.length = length;
-        }
+        addTaint,
+        getTaint,
+        isTainted,
+        removeTaint;
 
         @Override
         public int getLength() {
-            return length;
+            return 0;
         }
     }
 
@@ -65,17 +60,15 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
 
     public abstract static class JSAddTaintNode extends JSBuiltinNode {
 
+        // TODO replace default taint by source code location
         private static final TruffleString DEFAULT_TAINT = constant("DEFAULT_TAINT");
-
-        // TODO is this indirection necessary (extending JSBuiltinNode),
-        //  or can I use TSTaintNode.AddTaintNode directly?
 
         public JSAddTaintNode(JSContext context, JSBuiltin builtin) {
             super(context, builtin);
         }
 
         @Specialization
-        AbstractTruffleString addTainted(AbstractTruffleString value, Object taint,
+        AbstractTruffleString addTaint(AbstractTruffleString value, Object taint,
                                              @Cached TSTaintNodes.AddTaintNode addTaintNode) {
             return addTaintNode.execute(value, JSGuards.isUndefined(taint) ? DEFAULT_TAINT : taint);
         }
@@ -105,8 +98,6 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
                           @Cached TSTaintNodes.GetTaintNode getTaintNode,
                           @Cached TSTaintNodes.IsTaintedNode isTaintedNode) {
             final Object[] taint = mapNull(getTaintNode.execute(a));
-
-            // TODO no clue which array implementation I should choose, there are sooooo many
             return JSArray.createZeroBasedObjectArray(getContext(), getRealm(), taint);
         }
 
@@ -136,7 +127,11 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
         @Specialization
         AbstractTruffleString removeTaint(AbstractTruffleString a, int from, int to,
                           @Cached TSTaintNodes.RemoveTaintNode removeTaintNode) {
-            return removeTaintNode.execute(a, from, to);
+            try {
+                return removeTaintNode.execute(a, from, to);
+            } catch (IndexOutOfBoundsException e) {
+                throw Errors.createError("Failed to remove taint due to index being out of bounds", e);
+            }
         }
     }
 }
