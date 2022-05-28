@@ -591,7 +591,7 @@ public abstract class AbstractParser {
      * Flag to taint all {@link TruffleString}s upon creation during parsing.
      * Should be controllable via the argument {@code --js.taint-all-strings}.
      */
-    abstract protected boolean shouldTaintAllStrings();
+    protected abstract boolean shouldTaintAllStrings();
 
     /**
      * Custom number-to-string converter used to convert numeric property names to strings.
