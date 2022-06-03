@@ -307,8 +307,7 @@ public abstract class LiteralNode<T> extends Expression {
         long tokenWithDelimiter = Token.withDelimiter(token);
         int newFinish = Token.descPosition(tokenWithDelimiter) + Token.descLength(tokenWithDelimiter);
         if (shouldTaintAllStrings) {
-            // TODO replace with current position
-            final TruffleString tainted = (TruffleString) TSTaintNodes.AddTaintNode.getUncached().execute(value, constant("ALL STRINGS ARE TAINTED"));
+            final TruffleString tainted = (TruffleString) TSTaintNodes.AddTaintNode.getUncached().execute(value, true);
             return new StringLiteralNode(tokenWithDelimiter, newFinish, tainted);
         }
         return new StringLiteralNode(tokenWithDelimiter, newFinish, value);

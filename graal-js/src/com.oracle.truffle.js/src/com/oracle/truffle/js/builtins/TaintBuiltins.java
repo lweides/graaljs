@@ -59,12 +59,12 @@ import com.oracle.truffle.js.runtime.objects.Null;
 
 import java.util.Arrays;
 
-import static com.oracle.js.parser.ParserStrings.constant;
 import static com.oracle.truffle.js.builtins.TaintBuiltinsFactory.*;
 
 public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBuiltins.Taint> {
 
     public static final JSBuiltinsContainer BUILTINS = new TaintBuiltins();
+    private static final boolean DEFAULT_TAINT = true;
 
     TaintBuiltins() {
         super(JSRealm.TAINT_CLASS_NAME, TaintBuiltins.Taint.class);
@@ -72,7 +72,9 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
 
     public enum Taint implements BuiltinEnum<Taint> {
         addTaint,
+        addTaintInRange,
         getTaint,
+        getTaintAtIndex,
         isTainted,
         removeTaint;
 
@@ -87,8 +89,12 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
         switch (builtinEnum) {
             case addTaint:
                 return JSAddTaintNodeGen.create(context, builtin, args().fixedArgs(2).createArgumentNodes(context));
+            case addTaintInRange:
+                return JSAddTaintInRangeNodeGen.create(context, builtin, args().fixedArgs(4).createArgumentNodes(context));
             case getTaint:
                 return JSGetTaintNodeGen.create(context, builtin, args().fixedArgs(1).createArgumentNodes(context));
+            case getTaintAtIndex:
+                return GetTaintAtIndexNodeGen.create(context, builtin, args().fixedArgs(2).createArgumentNodes(context));
             case isTainted:
                 return JSIsTaintedNodeGen.create(context, builtin, args().fixedArgs(1).createArgumentNodes(context));
             case removeTaint:
@@ -100,9 +106,6 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
 
     public abstract static class JSAddTaintNode extends JSBuiltinNode {
 
-        // TODO replace default taint by source code location
-        private static final TruffleString DEFAULT_TAINT = constant("DEFAULT_TAINT");
-
         public JSAddTaintNode(JSContext context, JSBuiltin builtin) {
             super(context, builtin);
         }
@@ -111,6 +114,23 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
         AbstractTruffleString addTaint(AbstractTruffleString value, Object taint,
                                              @Cached TSTaintNodes.AddTaintNode addTaintNode) {
             return addTaintNode.execute(value, JSGuards.isUndefined(taint) ? DEFAULT_TAINT : taint);
+        }
+    }
+
+    public abstract static class JSAddTaintInRangeNode extends JSBuiltinNode {
+
+        public JSAddTaintInRangeNode(JSContext context, JSBuiltin builtin) {
+            super(context, builtin);
+        }
+
+        @Specialization
+        AbstractTruffleString addTaint(AbstractTruffleString value, Object taint, int from, int to,
+                                       @Cached TSTaintNodes.AddTaintInRangeNode addTaintInRangeNode) {
+            try {
+                return addTaintInRangeNode.execute(value, JSGuards.isUndefined(taint) ? DEFAULT_TAINT : taint, from, to);
+            } catch (IndexOutOfBoundsException e) {
+                throw Errors.createError("Failed to add taint due to some index being out of bounds", e);
+            }
         }
     }
 
@@ -155,6 +175,24 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
                 }
             }
             return mapped;
+        }
+    }
+
+    public abstract static class GetTaintAtIndexNode extends JSBuiltinNode {
+
+        public GetTaintAtIndexNode(JSContext context, JSBuiltin builtin) {
+            super(context, builtin);
+        }
+
+        @Specialization
+        Object getTaintAtIndex(AbstractTruffleString a, int index,
+                               @Cached TSTaintNodes.GetTaintAtCodePointNode getTaintAtCodePointNode) {
+            try {
+                final Object taint = getTaintAtCodePointNode.execute(a, index);
+                return taint == null ? Null.instance : taint;
+            } catch (IndexOutOfBoundsException e) {
+                throw Errors.createError("Failed to get taint due to index being out of bounds", e);
+            }
         }
     }
 
