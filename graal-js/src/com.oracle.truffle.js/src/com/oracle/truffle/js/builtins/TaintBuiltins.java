@@ -41,6 +41,7 @@
 package com.oracle.truffle.js.builtins;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TSTaintNodes;
@@ -115,6 +116,12 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
                                              @Cached TSTaintNodes.AddTaintNode addTaintNode) {
             return addTaintNode.execute(value, JSGuards.isUndefined(taint) ? DEFAULT_TAINT : taint);
         }
+
+        @Fallback
+        void fallback(Object param1, Object param2) {
+            throw Errors.createError("Unsupported arguments");
+        }
+
     }
 
     public abstract static class JSAddTaintInRangeNode extends JSBuiltinNode {
@@ -132,6 +139,11 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
                 throw Errors.createError("Failed to add taint due to some index being out of bounds", e);
             }
         }
+
+        @Fallback
+        void fallback(Object param1, Object param2, Object param3, Object param4) {
+            throw Errors.createError("Unsupported arguments");
+        }
     }
 
     public abstract static class JSIsTaintedNode extends JSBuiltinNode {
@@ -144,6 +156,11 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
         boolean isTainted(AbstractTruffleString a,
                           @Cached TSTaintNodes.IsTaintedNode isTaintedNode) {
             return isTaintedNode.execute(a);
+        }
+
+        @Fallback
+        void fallback(Object param1) {
+            throw Errors.createError("Unsupported arguments");
         }
     }
 
@@ -167,6 +184,11 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
             return JSArray.createEmpty(getContext(), getRealm(), Strings.length(a));
         }
 
+        @Specialization(guards = "!isAbstractTruffleString(param1)")
+        void fallback(Object param1) {
+            throw Errors.createError("Unsupported arguments");
+        }
+
         private static Object[] mapNull(Object[] arr) {
             final Object[] mapped = Arrays.copyOf(arr, arr.length);
             for (int i = 0; i < mapped.length; i++) {
@@ -175,6 +197,10 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
                 }
             }
             return mapped;
+        }
+
+        static boolean isAbstractTruffleString(Object o) {
+            return o instanceof AbstractTruffleString;
         }
     }
 
@@ -194,6 +220,11 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
                 throw Errors.createError("Failed to get taint due to index being out of bounds", e);
             }
         }
+
+        @Fallback
+        void fallback(Object param1, Object param2) {
+            throw Errors.createError("Unsupported arguments");
+        }
     }
 
     public abstract static class JSRemoveTaintNode extends JSBuiltinNode {
@@ -210,6 +241,11 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
             } catch (IndexOutOfBoundsException e) {
                 throw Errors.createError("Failed to remove taint due to index being out of bounds", e);
             }
+        }
+
+        @Fallback
+        void fallback(Object param1, Object param2, Object param3) {
+            throw Errors.createError("Unsupported arguments");
         }
     }
 }
