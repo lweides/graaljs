@@ -257,8 +257,8 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
 
         @Specialization
         Object getTaintAtIndex(JSStringObject a, int index,
-                               @Cached TSTaintNodes.GetTaintAtCodePointNode getTaintAtIndexNode) {
-            return getTaintAtIndex(a.getString(), index, getTaintAtIndexNode);
+                               @Cached TSTaintNodes.GetTaintAtCodePointNode getTaintAtCodePointNode) {
+            return getTaintAtIndex(a.getString(), index, getTaintAtCodePointNode);
         }
 
         @Fallback
