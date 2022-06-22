@@ -56,6 +56,7 @@ import com.oracle.truffle.js.runtime.Strings;
 import com.oracle.truffle.js.runtime.builtins.BuiltinEnum;
 import com.oracle.truffle.js.runtime.builtins.JSArray;
 import com.oracle.truffle.js.runtime.builtins.JSArrayObject;
+import com.oracle.truffle.js.runtime.builtins.JSStringObject;
 import com.oracle.truffle.js.runtime.objects.Null;
 
 import java.util.Arrays;
@@ -117,6 +118,13 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
             return addTaintNode.execute(value, JSGuards.isUndefined(taint) ? DEFAULT_TAINT : taint);
         }
 
+        @Specialization
+        JSStringObject addTaint(JSStringObject value, Object taint,
+                          @Cached TSTaintNodes.AddTaintNode addTaintNode) {
+            final TruffleString tainted = (TruffleString) addTaint(value.getString(), taint, addTaintNode);
+            return JSStringObject.create(getRealm(), getContext().getStringFactory(), tainted);
+        }
+
         @Fallback
         void fallback(Object param1, Object param2) {
             throw Errors.createError("Unsupported arguments");
@@ -131,13 +139,20 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
         }
 
         @Specialization
-        AbstractTruffleString addTaint(AbstractTruffleString value, Object taint, int from, int to,
+        AbstractTruffleString addTaintInRange(AbstractTruffleString value, Object taint, int from, int to,
                                        @Cached TSTaintNodes.AddTaintInRangeNode addTaintInRangeNode) {
             try {
                 return addTaintInRangeNode.execute(value, JSGuards.isUndefined(taint) ? DEFAULT_TAINT : taint, from, to);
             } catch (IndexOutOfBoundsException e) {
                 throw Errors.createError("Failed to add taint due to some index being out of bounds", e);
             }
+        }
+
+        @Specialization
+        JSStringObject addTaintInRange(JSStringObject value, Object taint, int from, int to,
+                                       @Cached TSTaintNodes.AddTaintInRangeNode addTaintInRangeNode) {
+            final TruffleString tainted = (TruffleString) addTaintInRange(value.getString(), taint, from, to, addTaintInRangeNode);
+            return JSStringObject.create(getRealm(), getContext().getStringFactory(), tainted);
         }
 
         @Fallback
@@ -156,6 +171,12 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
         boolean isTainted(AbstractTruffleString a,
                           @Cached TSTaintNodes.IsTaintedNode isTaintedNode) {
             return isTaintedNode.execute(a);
+        }
+
+        @Specialization
+        boolean isTainted(JSStringObject a,
+                          @Cached TSTaintNodes.IsTaintedNode isTaintedNode) {
+            return isTainted(a.getString(), isTaintedNode);
         }
 
         @Fallback
@@ -184,7 +205,20 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
             return JSArray.createEmpty(getContext(), getRealm(), Strings.length(a));
         }
 
-        @Specialization(guards = "!isAbstractTruffleString(param1)")
+        @Specialization(guards = "isTaintedNode.execute(a.getString())")
+        JSArrayObject getTaintBoxedTainted(JSStringObject a,
+                                    @Cached TSTaintNodes.GetTaintNode getTaintNode,
+                                    @Cached TSTaintNodes.IsTaintedNode isTaintedNode) {
+            return getTaintTainted(a.getString(), getTaintNode, isTaintedNode);
+        }
+
+        @Specialization(guards = "!isTaintedNode.execute(a.getString())")
+        JSArrayObject getTaintBoxedUntainted(JSStringObject a,
+                                    @Cached TSTaintNodes.IsTaintedNode isTaintedNode) {
+            return getTaintUntainted(a.getString(), isTaintedNode);
+        }
+
+        @Specialization(guards = "!isString(param1)")
         void fallback(Object param1) {
             throw Errors.createError("Unsupported arguments");
         }
@@ -199,8 +233,8 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
             return mapped;
         }
 
-        static boolean isAbstractTruffleString(Object o) {
-            return o instanceof AbstractTruffleString;
+        static boolean isString(Object o) {
+            return o instanceof AbstractTruffleString || o instanceof JSStringObject;
         }
     }
 
@@ -219,6 +253,12 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
             } catch (IndexOutOfBoundsException e) {
                 throw Errors.createError("Failed to get taint due to index being out of bounds", e);
             }
+        }
+
+        @Specialization
+        Object getTaintAtIndex(JSStringObject a, int index,
+                               @Cached TSTaintNodes.GetTaintAtCodePointNode getTaintAtIndexNode) {
+            return getTaintAtIndex(a.getString(), index, getTaintAtIndexNode);
         }
 
         @Fallback
@@ -241,6 +281,13 @@ public final class TaintBuiltins extends JSBuiltinsContainer.SwitchEnum<TaintBui
             } catch (IndexOutOfBoundsException e) {
                 throw Errors.createError("Failed to remove taint due to index being out of bounds", e);
             }
+        }
+
+        @Specialization
+        JSStringObject removeTaint(JSStringObject a, int from, int to,
+                                   @Cached TSTaintNodes.RemoveTaintNode removeTaintNode) {
+            TruffleString removed = (TruffleString) removeTaint(a.getString(), from, to, removeTaintNode);
+            return JSStringObject.create(getRealm(), getContext().getStringFactory(), removed);
         }
 
         @Fallback

@@ -1,5 +1,4 @@
-function addTaint() {
-    const foo = "foo";
+function addTaint(foo) {
     console.assert(!Taint.isTainted(foo), "Should not have been tainted");
 
     const tainted = Taint.addTaint(foo, "bar");
@@ -7,8 +6,7 @@ function addTaint() {
     console.assert(!Taint.isTainted(foo), "Should not have been tainted");
 }
 
-function getTaint() {
-    const foo = "foo";
+function getTaint(foo) {
     const taintArr = Taint.getTaint(foo);
 
     console.assert(taintArr.length === 3, "Should have same length as \"foo\"");
@@ -20,8 +18,7 @@ function getTaint() {
     assertTaintLabelsAreEqual(["bar", "bar", "bar"], taintedTaintArr);
 }
 
-function addTaintInRange() {
-    const foobar = "foobar";
+function addTaintInRange(foobar) {
     const tainted = Taint.addTaintInRange(foobar, true, 2, 5);
     const taintArr = Taint.getTaint(tainted);
 
@@ -32,8 +29,7 @@ function addTaintInRange() {
     );
 }
 
-function getTaintAtIndex() {
-    const foo = "bar";
+function getTaintAtIndex(foo) {
     const t0 = Taint.addTaintInRange(foo, 1, 0, 1);
     const t1 = Taint.addTaintInRange(t0, 2, 1, 2);
     const t2 = Taint.addTaintInRange(t1, 3, 2, 3);
@@ -43,8 +39,8 @@ function getTaintAtIndex() {
     }
 }
 
-function removeTaint() {
-    const foobar = Taint.addTaint("foobar", 1);
+function removeTaint(foo) {
+    const foobar = Taint.addTaint(foo, 1);
     const partiallyTainted = Taint.removeTaint(foobar, 2, 5);
     const taintArr = Taint.getTaint(partiallyTainted);
 
@@ -56,8 +52,7 @@ function removeTaint() {
     );
 }
 
-function isTainted() {
-    const empty = "";
+function isTainted(empty) {
     console.assert(!Taint.isTainted(empty), "Empty string cannot be tainted");
 
     const emptyTainted = Taint.addTaint(empty);
@@ -68,12 +63,21 @@ function isTainted() {
 }
 
 
-addTaint();
-getTaint();
-addTaintInRange();
-getTaintAtIndex();
-removeTaint();
-isTainted();
+// primitives
+addTaint("foo");
+getTaint("foo");
+addTaintInRange("foobar");
+getTaintAtIndex("bar");
+removeTaint("foobar");
+isTainted("");
+
+// boxed
+addTaint(new String("foo"));
+getTaint(new String("foo"));
+addTaintInRange(new String("foobar"));
+getTaintAtIndex(new String("bar"));
+removeTaint(new String("foobar"));
+isTainted(new String(""));
 
 function assertTaintLabelsAreEqual(expected, actual) {
     console.assert(expected.length === actual.length, "Lengths differ");
