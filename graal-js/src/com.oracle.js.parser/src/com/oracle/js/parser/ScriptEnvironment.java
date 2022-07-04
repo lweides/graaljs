@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -122,10 +122,13 @@ public final class ScriptEnvironment {
     /** Is top-level await enabled? */
     final boolean topLevelAwait;
 
+    /** Should all strings be tainted upon creation?  */
+    final boolean taintAllStrings;
+
     private ScriptEnvironment(boolean strict, int ecmaScriptVersion, boolean emptyStatements, boolean syntaxExtensions, boolean scripting, boolean shebang,
                     boolean constAsVar, boolean allowBigInt, boolean annexB, boolean classFields, boolean importAssertions, boolean privateFieldsIn, boolean topLevelAwait,
                     FunctionStatementBehavior functionStatementBehavior,
-                    PrintWriter dumpOnError) {
+                    PrintWriter dumpOnError, boolean taintAllStrings) {
         this.namespace = new Namespace();
         this.err = dumpOnError;
 
@@ -144,6 +147,7 @@ public final class ScriptEnvironment {
         this.importAssertions = importAssertions;
         this.privateFieldsIn = privateFieldsIn;
         this.topLevelAwait = topLevelAwait;
+        this.taintAllStrings = taintAllStrings;
     }
 
     /**
@@ -187,6 +191,7 @@ public final class ScriptEnvironment {
         private boolean importAssertions = false;
         private boolean privateFieldsIn = false;
         private boolean topLevelAwait = false;
+        private boolean taintAllStrings = false;
         private FunctionStatementBehavior functionStatementBehavior = FunctionStatementBehavior.ERROR;
         private PrintWriter dumpOnError;
 
@@ -268,9 +273,14 @@ public final class ScriptEnvironment {
             return this;
         }
 
+        public Builder taintAllStrings(boolean taintAllStrings) {
+            this.taintAllStrings = taintAllStrings;
+            return this;
+        }
+
         public ScriptEnvironment build() {
             return new ScriptEnvironment(strict, ecmaScriptVersion, emptyStatements, syntaxExtensions, scripting, shebang, constAsVar, allowBigInt, annexB,
-                            classFields, importAssertions, privateFieldsIn, topLevelAwait, functionStatementBehavior, dumpOnError);
+                            classFields, importAssertions, privateFieldsIn, topLevelAwait, functionStatementBehavior, dumpOnError, taintAllStrings);
         }
     }
 }

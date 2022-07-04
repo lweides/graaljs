@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -75,6 +75,7 @@ public final class JSParserOptions {
     private final boolean importAssertions;
     private final boolean privateFieldsIn;
     private final boolean topLevelAwait;
+    private final boolean taintAllStrings;
 
     public JSParserOptions() {
         this.strict = false;
@@ -92,10 +93,11 @@ public final class JSParserOptions {
         this.importAssertions = false;
         this.privateFieldsIn = false;
         this.topLevelAwait = false;
+        this.taintAllStrings = false;
     }
 
     private JSParserOptions(boolean strict, boolean scripting, boolean shebang, int ecmaScriptVersion, boolean syntaxExtensions, boolean constAsVar, boolean functionStatementError,
-                    boolean dumpOnError, boolean emptyStatements, boolean annexB, boolean allowBigInt, boolean classFields, boolean importAssertions, boolean privateFieldsIn, boolean topLevelAwait) {
+                    boolean dumpOnError, boolean emptyStatements, boolean annexB, boolean allowBigInt, boolean classFields, boolean importAssertions, boolean privateFieldsIn, boolean topLevelAwait, boolean taintAllStrings) {
         this.strict = strict;
         this.scripting = scripting;
         this.shebang = shebang;
@@ -111,6 +113,7 @@ public final class JSParserOptions {
         this.importAssertions = importAssertions;
         this.privateFieldsIn = privateFieldsIn;
         this.topLevelAwait = topLevelAwait;
+        this.taintAllStrings = taintAllStrings;
     }
 
     public boolean isStrict() {
@@ -181,6 +184,10 @@ public final class JSParserOptions {
         return topLevelAwait;
     }
 
+    public boolean shouldTaintAllStrings() {
+        return taintAllStrings;
+    }
+
     public JSParserOptions putOptions(OptionValues optionValues) {
         JSParserOptions opts = this;
         int ecmaScriptVersion = ECMASCRIPT_VERSION.getValue(optionValues);
@@ -207,7 +214,7 @@ public final class JSParserOptions {
     public JSParserOptions putStrict(boolean strict) {
         if (strict != this.strict) {
             return new JSParserOptions(strict, scripting, shebang, ecmaScriptVersion, syntaxExtensions, constAsVar, functionStatementError, dumpOnError, emptyStatements, annexB, allowBigInt,
-                            classFields, importAssertions, privateFieldsIn, topLevelAwait);
+                            classFields, importAssertions, privateFieldsIn, topLevelAwait, taintAllStrings);
         }
         return this;
     }
@@ -215,7 +222,7 @@ public final class JSParserOptions {
     public JSParserOptions putScripting(boolean scripting) {
         if (scripting != this.scripting) {
             return new JSParserOptions(strict, scripting, shebang, ecmaScriptVersion, syntaxExtensions, constAsVar, functionStatementError, dumpOnError, emptyStatements, annexB, allowBigInt,
-                            classFields, importAssertions, privateFieldsIn, topLevelAwait);
+                            classFields, importAssertions, privateFieldsIn, topLevelAwait, taintAllStrings);
         }
         return this;
     }
@@ -223,7 +230,7 @@ public final class JSParserOptions {
     public JSParserOptions putShebang(boolean shebang) {
         if (shebang != this.shebang) {
             return new JSParserOptions(strict, scripting, shebang, ecmaScriptVersion, syntaxExtensions, constAsVar, functionStatementError, dumpOnError, emptyStatements, annexB, allowBigInt,
-                            classFields, importAssertions, privateFieldsIn, topLevelAwait);
+                            classFields, importAssertions, privateFieldsIn, topLevelAwait, taintAllStrings);
         }
         return this;
     }
@@ -231,7 +238,7 @@ public final class JSParserOptions {
     public JSParserOptions putEcmaScriptVersion(int ecmaScriptVersion) {
         if (ecmaScriptVersion != this.ecmaScriptVersion) {
             return new JSParserOptions(strict, scripting, shebang, ecmaScriptVersion, syntaxExtensions, constAsVar, functionStatementError, dumpOnError, emptyStatements, annexB, allowBigInt,
-                            classFields, importAssertions, privateFieldsIn, topLevelAwait);
+                            classFields, importAssertions, privateFieldsIn, topLevelAwait, taintAllStrings);
         }
         return this;
     }
@@ -239,7 +246,7 @@ public final class JSParserOptions {
     public JSParserOptions putSyntaxExtensions(boolean syntaxExtensions) {
         if (syntaxExtensions != this.syntaxExtensions) {
             return new JSParserOptions(strict, scripting, shebang, ecmaScriptVersion, syntaxExtensions, constAsVar, functionStatementError, dumpOnError, emptyStatements, annexB, allowBigInt,
-                            classFields, importAssertions, privateFieldsIn, topLevelAwait);
+                            classFields, importAssertions, privateFieldsIn, topLevelAwait, taintAllStrings);
         }
         return this;
     }
@@ -247,7 +254,7 @@ public final class JSParserOptions {
     public JSParserOptions putConstAsVar(boolean constAsVar) {
         if (constAsVar != this.constAsVar) {
             return new JSParserOptions(strict, scripting, shebang, ecmaScriptVersion, syntaxExtensions, constAsVar, functionStatementError, dumpOnError, emptyStatements, annexB, allowBigInt,
-                            classFields, importAssertions, privateFieldsIn, topLevelAwait);
+                            classFields, importAssertions, privateFieldsIn, topLevelAwait, taintAllStrings);
         }
         return this;
     }
@@ -255,7 +262,7 @@ public final class JSParserOptions {
     public JSParserOptions putFunctionStatementError(boolean functionStatementError) {
         if (functionStatementError != this.functionStatementError) {
             return new JSParserOptions(strict, scripting, shebang, ecmaScriptVersion, syntaxExtensions, constAsVar, functionStatementError, dumpOnError, emptyStatements,
-                            annexB, allowBigInt, classFields, importAssertions, privateFieldsIn, topLevelAwait);
+                            annexB, allowBigInt, classFields, importAssertions, privateFieldsIn, topLevelAwait, taintAllStrings);
         }
         return this;
     }
@@ -263,7 +270,7 @@ public final class JSParserOptions {
     public JSParserOptions putAnnexB(boolean annexB) {
         if (annexB != this.annexB) {
             return new JSParserOptions(strict, scripting, shebang, ecmaScriptVersion, syntaxExtensions, constAsVar, functionStatementError, dumpOnError, emptyStatements, annexB, allowBigInt,
-                            classFields, importAssertions, privateFieldsIn, topLevelAwait);
+                            classFields, importAssertions, privateFieldsIn, topLevelAwait, taintAllStrings);
         }
         return this;
     }
@@ -271,7 +278,7 @@ public final class JSParserOptions {
     public JSParserOptions putAllowBigInt(boolean allowBigInt) {
         if (allowBigInt != this.allowBigInt) {
             return new JSParserOptions(strict, scripting, shebang, ecmaScriptVersion, syntaxExtensions, constAsVar, functionStatementError, dumpOnError, emptyStatements, annexB, allowBigInt,
-                            classFields, importAssertions, privateFieldsIn, topLevelAwait);
+                            classFields, importAssertions, privateFieldsIn, topLevelAwait, taintAllStrings);
         }
         return this;
     }
@@ -279,7 +286,7 @@ public final class JSParserOptions {
     public JSParserOptions putClassFields(boolean classFields) {
         if (classFields != this.classFields) {
             return new JSParserOptions(strict, scripting, shebang, ecmaScriptVersion, syntaxExtensions, constAsVar, functionStatementError, dumpOnError, emptyStatements, annexB, allowBigInt,
-                            classFields, importAssertions, privateFieldsIn, topLevelAwait);
+                            classFields, importAssertions, privateFieldsIn, topLevelAwait, taintAllStrings);
         }
         return this;
     }
@@ -287,7 +294,7 @@ public final class JSParserOptions {
     public JSParserOptions putImportAssertions(boolean importAssertions) {
         if (importAssertions != this.importAssertions) {
             return new JSParserOptions(strict, scripting, shebang, ecmaScriptVersion, syntaxExtensions, constAsVar, functionStatementError, dumpOnError, emptyStatements, annexB, allowBigInt,
-                            classFields, importAssertions, privateFieldsIn, topLevelAwait);
+                            classFields, importAssertions, privateFieldsIn, topLevelAwait, taintAllStrings);
         }
         return this;
     }
@@ -295,7 +302,7 @@ public final class JSParserOptions {
     public JSParserOptions putPrivateFieldsIn(boolean privateFieldsIn) {
         if (privateFieldsIn != this.privateFieldsIn) {
             return new JSParserOptions(strict, scripting, shebang, ecmaScriptVersion, syntaxExtensions, constAsVar, functionStatementError, dumpOnError, emptyStatements, annexB, allowBigInt,
-                            classFields, importAssertions, privateFieldsIn, topLevelAwait);
+                            classFields, importAssertions, privateFieldsIn, topLevelAwait, taintAllStrings);
         }
         return this;
     }
@@ -303,7 +310,15 @@ public final class JSParserOptions {
     public JSParserOptions putTopLevelAwait(boolean topLevelAwait) {
         if (topLevelAwait != this.topLevelAwait) {
             return new JSParserOptions(strict, scripting, shebang, ecmaScriptVersion, syntaxExtensions, constAsVar, functionStatementError, dumpOnError, emptyStatements, annexB, allowBigInt,
-                            classFields, importAssertions, privateFieldsIn, topLevelAwait);
+                            classFields, importAssertions, privateFieldsIn, topLevelAwait, taintAllStrings);
+        }
+        return this;
+    }
+
+    public JSParserOptions putTaintAllStrings(boolean taintAllStrings) {
+        if (taintAllStrings != this.taintAllStrings) {
+            return new JSParserOptions(strict, scripting, shebang, ecmaScriptVersion, syntaxExtensions, constAsVar, functionStatementError, dumpOnError, emptyStatements, annexB, allowBigInt,
+                    classFields, importAssertions, privateFieldsIn, topLevelAwait, taintAllStrings);
         }
         return this;
     }
@@ -327,6 +342,7 @@ public final class JSParserOptions {
         result = prime * result + (importAssertions ? 1231 : 1237);
         result = prime * result + (privateFieldsIn ? 1231 : 1237);
         result = prime * result + (topLevelAwait ? 1231 : 1237);
+        result = prime * result + (taintAllStrings ? 1231 : 1237); // TODO I hope this still works as intended
         return result;
     }
 
@@ -368,6 +384,8 @@ public final class JSParserOptions {
         } else if (privateFieldsIn != other.privateFieldsIn) {
             return false;
         } else if (topLevelAwait != other.topLevelAwait) {
+            return false;
+        } else if (taintAllStrings != other.taintAllStrings) {
             return false;
         }
         return true;

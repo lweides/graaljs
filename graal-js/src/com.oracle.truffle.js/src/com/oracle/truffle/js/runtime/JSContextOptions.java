@@ -613,6 +613,13 @@ public final class JSContextOptions {
     public static final OptionKey<Boolean> SCOPE_OPTIMIZATION = new OptionKey<>(true);
     @CompilationFinal private boolean scopeOptimization;
 
+    // TODO could even be internal category
+    // TODO atm this is an experimental option, how to change this? Should it even be changed?
+    public static final String TAINT_ALL_STRINGS_NAME = JS_OPTION_PREFIX + "taint-all-strings";
+    @Option(name = TAINT_ALL_STRINGS_NAME, category = OptionCategory.EXPERT, help = "Taints all Strings on creation")
+    public static final OptionKey<Boolean> TAINT_ALL_STRINGS = new OptionKey<>(false);
+    @CompilationFinal private boolean taintAllStrings;
+
     JSContextOptions(JSParserOptions parserOptions, OptionValues optionValues) {
         this.parserOptions = parserOptions;
         this.optionValues = optionValues;
@@ -718,6 +725,7 @@ public final class JSContextOptions {
         this.propertyCacheLimit = readIntegerOption(PROPERTY_CACHE_LIMIT);
         this.functionCacheLimit = readIntegerOption(FUNCTION_CACHE_LIMIT);
         this.scopeOptimization = readBooleanOption(SCOPE_OPTIMIZATION);
+        this.taintAllStrings = readBooleanOption(TAINT_ALL_STRINGS);
     }
 
     private boolean patchBooleanOption(OptionKey<Boolean> key, String name, boolean oldValue, Consumer<String> invalidate) {
@@ -1134,6 +1142,10 @@ public final class JSContextOptions {
 
     public boolean isScopeOptimization() {
         return scopeOptimization;
+    }
+
+    public boolean shouldTaintAllStrings() {
+        return taintAllStrings;
     }
 
     @Override

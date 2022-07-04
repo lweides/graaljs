@@ -57,6 +57,7 @@ import java.util.Objects;
 import java.util.SplittableRandom;
 import java.util.WeakHashMap;
 
+import com.oracle.truffle.js.builtins.TaintBuiltins;
 import org.graalvm.collections.Pair;
 import org.graalvm.home.HomeFinder;
 import org.graalvm.options.OptionValues;
@@ -223,6 +224,7 @@ public class JSRealm {
     public static final TruffleString CONSOLE_CLASS_NAME = Strings.constant("Console");
     public static final TruffleString SYMBOL_ITERATOR_NAME = Strings.constant("[Symbol.iterator]");
     public static final TruffleString MLE_CLASS_NAME = Strings.constant("MLE");
+    public static final TruffleString TAINT_CLASS_NAME = Strings.constant("Taint");
 
     private static final TruffleString GRAALVM_VERSION = Strings.fromJavaString(HomeFinder.getInstance().getVersion());
 
@@ -1844,6 +1846,7 @@ public class JSRealm {
         addConsoleGlobals();
         addPrintGlobals();
         addPerformanceGlobal();
+        addTaintGlobals();
 
         if (isJavaInteropEnabled()) {
             setupJavaInterop();
@@ -2044,6 +2047,16 @@ public class JSRealm {
         JSObject console = JSOrdinary.createInit(this);
         JSObjectUtil.putFunctionsFromContainer(this, console, ConsoleBuiltins.BUILTINS);
         return console;
+    }
+
+    private void addTaintGlobals() {
+        putGlobalProperty(Strings.TAINT, createTaintObject());
+    }
+
+    private JSDynamicObject createTaintObject() {
+        JSObject taint = JSOrdinary.createInit(this);
+        JSObjectUtil.putFunctionsFromContainer(this, taint, TaintBuiltins.BUILTINS);
+        return taint;
     }
 
     private JSDynamicObject createPerformanceObject() {

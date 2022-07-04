@@ -578,6 +578,7 @@ public final class Strings extends ParserStrings {
     public static final TruffleString ELEMENT = constant("element");
     public static final TruffleString INITIAL = constant("initial");
     public static final TruffleString MAXIMUM = constant("maximum");
+    public static final TruffleString TAINT = constant("Taint");
     /* end of constants */
 
     public static boolean isTString(Object string) {

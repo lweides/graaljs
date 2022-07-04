@@ -342,6 +342,9 @@ public class Parser extends AbstractParser {
     /** Is BigInt supported */
     private final boolean allowBigInt;
 
+    /** Should all strings be tainted  */
+    private final boolean taintAllStrings;
+
     private List<Statement> functionDeclarations;
 
     private final ParserContext lc;
@@ -409,6 +412,7 @@ public class Parser extends AbstractParser {
         this.scripting = env.scripting && env.syntaxExtensions;
         this.shebang = env.shebang || scripting;
         this.allowBigInt = env.allowBigInt;
+        this.taintAllStrings = env.taintAllStrings;
         if (this.scripting) {
             this.lineInfoReceiver = new Lexer.LineInfoReceiver() {
                 @Override
@@ -446,6 +450,11 @@ public class Parser extends AbstractParser {
      */
     public void setReparsedFunction(final RecompilableScriptFunctionData reparsedFunction) {
         this.reparsedFunction = reparsedFunction;
+    }
+
+    @Override
+    protected boolean shouldTaintAllStrings() {
+        return taintAllStrings;
     }
 
     /**
@@ -6608,9 +6617,9 @@ public class Parser extends AbstractParser {
             // A tagged template string with an invalid escape sequence has value 'undefined'
             cookedExpression = newUndefinedLiteral(stringToken, finish);
         } else {
-            cookedExpression = LiteralNode.newInstance(stringToken, cookedString);
+            cookedExpression = LiteralNode.newInstance(stringToken, cookedString, shouldTaintAllStrings());
         }
-        rawStrings.add(LiteralNode.newInstance(stringToken, rawString));
+        rawStrings.add(LiteralNode.newInstance(stringToken, rawString, shouldTaintAllStrings()));
         cookedStrings.add(cookedExpression);
     }
 
@@ -6777,7 +6786,7 @@ public class Parser extends AbstractParser {
             TruffleString moduleSpecifier = (TruffleString) getValue();
             long specifierToken = token;
             next();
-            LiteralNode<TruffleString> specifier = LiteralNode.newInstance(specifierToken, moduleSpecifier);
+            LiteralNode<TruffleString> specifier = LiteralNode.newInstance(specifierToken, moduleSpecifier, shouldTaintAllStrings());
             Map<TruffleString, TruffleString> assertions = Map.of();
             if (env.importAssertions && type == ASSERT && last != EOL) {
                 assertions = assertClause();
@@ -6989,7 +6998,7 @@ public class Parser extends AbstractParser {
             TruffleString moduleSpecifier = (TruffleString) getValue();
             long specifierToken = token;
             next();
-            LiteralNode<TruffleString> specifier = LiteralNode.newInstance(specifierToken, moduleSpecifier);
+            LiteralNode<TruffleString> specifier = LiteralNode.newInstance(specifierToken, moduleSpecifier, shouldTaintAllStrings());
             return new FromNode(fromToken, fromStart, finish, specifier);
         } else {
             throw error(expectMessage(STRING));

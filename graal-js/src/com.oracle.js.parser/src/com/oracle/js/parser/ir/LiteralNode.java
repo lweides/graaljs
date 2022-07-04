@@ -47,12 +47,14 @@ import java.util.List;
 import java.util.function.Function;
 
 import com.oracle.js.parser.Lexer.LexerToken;
-import com.oracle.js.parser.ParserStrings;
 import com.oracle.js.parser.Token;
 import com.oracle.js.parser.TokenType;
 import com.oracle.js.parser.ir.visitor.NodeVisitor;
 import com.oracle.js.parser.ir.visitor.TranslatorNodeVisitor;
+import com.oracle.truffle.api.strings.TSTaintNodes;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import static com.oracle.js.parser.ParserStrings.constant;
 
 /**
  * Literal nodes represent JavaScript values.
@@ -104,7 +106,7 @@ public abstract class LiteralNode<T> extends Expression {
         if (value instanceof TruffleString) {
             return (TruffleString) value;
         }
-        return ParserStrings.constant(String.valueOf(value));
+        return constant(String.valueOf(value));
     }
 
     /**
@@ -207,7 +209,7 @@ public abstract class LiteralNode<T> extends Expression {
 
         @Override
         public TruffleString getPropertyName() {
-            return ParserStrings.constant(String.valueOf(getObject()));
+            return constant(String.valueOf(getObject()));
         }
     }
 
@@ -301,9 +303,13 @@ public abstract class LiteralNode<T> extends Expression {
      *
      * @return the new literal node
      */
-    public static LiteralNode<TruffleString> newInstance(final long token, final TruffleString value) {
+    public static LiteralNode<TruffleString> newInstance(final long token, final TruffleString value, boolean shouldTaintAllStrings) {
         long tokenWithDelimiter = Token.withDelimiter(token);
         int newFinish = Token.descPosition(tokenWithDelimiter) + Token.descLength(tokenWithDelimiter);
+        if (shouldTaintAllStrings) {
+            final TruffleString tainted = (TruffleString) TSTaintNodes.AddTaintNode.getUncached().execute(value, true);
+            return new StringLiteralNode(tokenWithDelimiter, newFinish, tainted);
+        }
         return new StringLiteralNode(tokenWithDelimiter, newFinish, value);
     }
 
